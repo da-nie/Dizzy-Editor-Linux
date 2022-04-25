@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>CMainWindow</class>
+ <widget class="QMainWindow" name="CMainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>679</width>
+    <height>554</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Dizzy Map Editor v1.0</string>
+  </property>
+  <widget class="QWidget" name="centralWidget">
+   <layout class="QGridLayout" name="gridLayout" rowstretch="1">
+    <item row="0" column="0">
+     <layout class="QGridLayout" name="gridLayout_basic" rowstretch="10,10,6,13" columnstretch="5,10">
+      <item row="0" column="1" rowspan="4">
+       <widget class="CMapEditor" name="cMapEditor" native="true"/>
+      </item>
+      <item row="0" column="0" rowspan="2">
+       <widget class="QScrollArea" name="cScrollArea_Tiles">
+        <property name="verticalScrollBarPolicy">
+         <enum>Qt::ScrollBarAlwaysOn</enum>
+        </property>
+        <property name="horizontalScrollBarPolicy">
+         <enum>Qt::ScrollBarAlwaysOn</enum>
+        </property>
+        <property name="widgetResizable">
+         <bool>true</bool>
+        </property>
+        <widget class="QWidget" name="cScrollAreaWidgetContents_Tiles">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>0</y>
+           <width>198</width>
+           <height>222</height>
+          </rect>
+         </property>
+        </widget>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QWidget" name="widget" native="true">
+        <layout class="QGridLayout" name="gridLayout_3">
+         <item row="1" column="0">
+          <widget class="QGroupBox" name="groupBox">
+           <property name="title">
+            <string>Настройки блоков</string>
+           </property>
+           <widget class="QCheckBox" name="cCheckBox_Matherial_Barrier">
+            <property name="geometry">
+             <rect>
+              <x>10</x>
+              <y>20</y>
+              <width>181</width>
+              <height>18</height>
+             </rect>
+            </property>
+            <property name="text">
+             <string>Преграда</string>
+            </property>
+           </widget>
+           <widget class="QCheckBox" name="cCheckBox_Matherial_FirstPlane">
+            <property name="geometry">
+             <rect>
+              <x>10</x>
+              <y>40</y>
+              <width>181</width>
+              <height>18</height>
+             </rect>
+            </property>
+            <property name="text">
+             <string>Передний план</string>
+            </property>
+           </widget>
+           <widget class="QLineEdit" name="cLineEdit_PartName">
+            <property name="geometry">
+             <rect>
+              <x>10</x>
+              <y>80</y>
+              <width>181</width>
+              <height>20</height>
+             </rect>
+            </property>
+           </widget>
+           <widget class="QPushButton" name="cPushButton_SetPartName">
+            <property name="geometry">
+             <rect>
+              <x>10</x>
+              <y>110</y>
+              <width>181</width>
+              <height>21</height>
+             </rect>
+            </property>
+            <property name="text">
+             <string>Задать имя материалу</string>
+            </property>
+           </widget>
+           <widget class="QCheckBox" name="cCheckBox_Matherial_BeforeBackground">
+            <property name="geometry">
+             <rect>
+              <x>10</x>
+              <y>60</y>
+              <width>181</width>
+              <height>18</height>
+             </rect>
+            </property>
+            <property name="text">
+             <string>Выводится перед фоном</string>
+            </property>
+           </widget>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QFrame" name="frame">
+        <property name="frameShape">
+         <enum>QFrame::StyledPanel</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Raised</enum>
+        </property>
+        <widget class="QGroupBox" name="groupBox_2">
+         <property name="geometry">
+          <rect>
+           <x>9</x>
+           <y>9</y>
+           <width>201</width>
+           <height>51</height>
+          </rect>
+         </property>
+         <property name="title">
+          <string>Масштаб</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+         <widget class="QComboBox" name="cComboBox_Scale">
+          <property name="geometry">
+           <rect>
+            <x>10</x>
+            <y>20</y>
+            <width>181</width>
+            <height>22</height>
+           </rect>
+          </property>
+         </widget>
+        </widget>
+       </widget>
+      </item>
+     </layout>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>679</width>
+     <height>18</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menu">
+    <property name="title">
+     <string>Файл</string>
+    </property>
+    <addaction name="cAction_LoadMap"/>
+    <addaction name="separator"/>
+    <addaction name="cAction_SaveMap"/>
+    <addaction name="cAction_SaveMapAs"/>
+    <addaction name="separator"/>
+    <addaction name="cAction_ExportMap"/>
+   </widget>
+   <addaction name="menu"/>
+  </widget>
+  <widget class="QStatusBar" name="statusBar"/>
+  <widget class="QToolBar" name="cToolBar_Main">
+   <property name="windowTitle">
+    <string>toolBar</string>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="separator"/>
+  </widget>
+  <action name="cAction_SaveMap">
+   <property name="text">
+    <string>Сохранить карту..</string>
+   </property>
+  </action>
+  <action name="cAction_LoadMap">
+   <property name="text">
+    <string>Открыть карту..</string>
+   </property>
+  </action>
+  <action name="cAction_ExportMap">
+   <property name="text">
+    <string>Экспортировать карту</string>
+   </property>
+  </action>
+  <action name="cAction_SaveMapAs">
+   <property name="text">
+    <string>Сохранить карту как..</string>
+   </property>
+  </action>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>CMapEditor</class>
+   <extends>QWidget</extends>
+   <header>cmapeditor.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>
