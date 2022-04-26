@@ -50,19 +50,13 @@ CMainWindow::CMainWindow(QWidget *parent):QMainWindow(parent),ui(new Ui::CMainWi
  qAction_ModeMoveMap->setCheckable(true);
  connect(qAction_ModeMoveMap,SIGNAL(triggered()),this,SLOT(On_ToolBar_Main_MoveMap()));
 
- ScaleTable.push_back(std::pair<std::string,double>("1",1));
- ScaleTable.push_back(std::pair<std::string,double>("2",2));
- ScaleTable.push_back(std::pair<std::string,double>("3",3));
- ScaleTable.push_back(std::pair<std::string,double>("4",4));
- ScaleTable.push_back(std::pair<std::string,double>("0.75",0.75));
- ScaleTable.push_back(std::pair<std::string,double>("0.5",0.5));
- size_t size=ScaleTable.size();
- for(size_t n=0;n<size;n++) ui->cComboBox_Scale->addItem(ScaleTable[n].first.c_str());
- ui->cComboBox_Scale->setCurrentIndex(0);
-
  ui->cToolBar_Main->addAction(qAction_ModeSetPart);
  ui->cToolBar_Main->addAction(qAction_ModeSelectPart);
  ui->cToolBar_Main->addAction(qAction_ModeMoveMap);
+
+ TilesScale=1;
+ MapScale=1;
+ on_cPushButton_ImageX1_released();//выберем масштаб поля тайлов 1:1
 
  UpdateTilesImage();
 
@@ -86,17 +80,20 @@ CMainWindow::~CMainWindow()
 void CMainWindow::UpdateTilesImage(void)
 {
  QPainter qPainter;
- QPixmap qPixmap_Local=CImageStorage::GetPtr()->GetTiles();
+ uint32_t width=CImageStorage::GetPtr()->GetTiles().width();
+ uint32_t height=CImageStorage::GetPtr()->GetTiles().height();
+ QPixmap qPixmap_Local=CImageStorage::GetPtr()->GetTiles().scaled(width*TilesScale,height*TilesScale);;
+
  qPainter.begin(&qPixmap_Local);
  qPainter.setPen(QPen(Qt::yellow,1,Qt::SolidLine));
- qPainter.drawRect(QRect(SelectedTileIndexX*CImageStorage::TILE_WITH_BORDER_WIDTH,SelectedTileIndexY*CImageStorage::TILE_WITH_BORDER_HEIGHT,CImageStorage::TILE_WITH_BORDER_WIDTH-1,CImageStorage::TILE_WITH_BORDER_HEIGHT-1));
+ qPainter.drawRect(QRect(SelectedTileIndexX*CImageStorage::TILE_WITH_BORDER_WIDTH*TilesScale,SelectedTileIndexY*CImageStorage::TILE_WITH_BORDER_HEIGHT*TilesScale,CImageStorage::TILE_WITH_BORDER_WIDTH*TilesScale-1,CImageStorage::TILE_WITH_BORDER_HEIGHT*TilesScale-1));
  qPainter.end();
 
  QPalette qPalette;
  qPalette.setBrush(backgroundRole(),QBrush(qPixmap_Local));
  ui->cScrollAreaWidgetContents_Tiles->setPalette(qPalette);
  ui->cScrollAreaWidgetContents_Tiles->setAutoFillBackground(true);
- ui->cScrollAreaWidgetContents_Tiles->setFixedSize(qPixmap_Local.width(),qPixmap_Local.height());  
+ ui->cScrollAreaWidgetContents_Tiles->setFixedSize(qPixmap_Local.width(),qPixmap_Local.height());
 }
 //----------------------------------------------------------------------------------------------------
 //обработчик нажатия на кнопку мышки
@@ -120,8 +117,8 @@ void CMainWindow::mousePressEvent(QMouseEvent *qMouseEvent_Ptr)
   if (mpoint.x()>qRect_image.width()) return;
   if (mpoint.y()>qRect_image.height()) return;
 
-  int32_t tx=mpoint.x()/CImageStorage::TILE_WITH_BORDER_WIDTH;
-  int32_t ty=mpoint.y()/CImageStorage::TILE_WITH_BORDER_HEIGHT;
+  int32_t tx=mpoint.x()/(CImageStorage::TILE_WITH_BORDER_WIDTH*TilesScale);
+  int32_t ty=mpoint.y()/(CImageStorage::TILE_WITH_BORDER_HEIGHT*TilesScale);
 
   SelectedTileIndexX=tx;
   SelectedTileIndexY=ty;
@@ -158,6 +155,41 @@ void CMainWindow::keyPressEvent(QKeyEvent *pe)
 void CMainWindow::keyReleaseEvent(QKeyEvent *pe)
 {
  ui->cMapEditor->ReleaseKey(pe);
+}
+//----------------------------------------------------------------------------------------------------
+//событие вращения колёсика мышки
+//----------------------------------------------------------------------------------------------------
+void CMainWindow::wheelEvent(QWheelEvent *event)
+{
+ static const double MIN_MAP_SCALE=0.5;
+ static const double MAX_MAP_SCALE=8;
+ static const double ANGLE_DIVIDER=720.0;
+ static const double PIXEL_DIVIDER=100.0;
+
+ QPoint angle=event->angleDelta();
+ QPoint pixel=event->pixelDelta();
+
+ double ds=0;
+ if (!(angle.isNull()))
+ {       
+  ds=angle.y()/ANGLE_DIVIDER;
+ }
+ else
+ {
+  if (!(pixel.isNull()))
+  {
+   ds=pixel.y()/PIXEL_DIVIDER;
+  }
+ }
+ //приводим к точности в один знак после запятой
+ ds*=10.0;
+ ds=static_cast<int32_t>(ds);
+ ds/=10.0;
+ //корректируем масштаб
+ MapScale+=ds;
+ if (MapScale<MIN_MAP_SCALE) MapScale=MIN_MAP_SCALE;
+ if (MapScale>MAX_MAP_SCALE) MapScale=MAX_MAP_SCALE;
+ ui->cMapEditor->SetScale(MapScale);
 }
 //----------------------------------------------------------------------------------------------------
 //слот нажатия на кнопку проницаемости материала
@@ -278,15 +310,106 @@ void CMainWindow::On_ToolBar_Main_MoveMap(void)
  qAction_ModeMoveMap->setChecked(true);
 }
 //----------------------------------------------------------------------------------------------------
-//слот смены выбора масштаба
+//слот выбора режима масштабирования поля тайлов 1:1
 //----------------------------------------------------------------------------------------------------
-void CMainWindow::on_cComboBox_Scale_currentIndexChanged(int index)
+void CMainWindow::on_cPushButton_ImageX1_released()
 {
- double scale=ScaleTable[index].second;
- ui->cMapEditor->SetScale(scale);
+ ui->cPushButton_ImageX1->setChecked(true);
+ ui->cPushButton_ImageX2->setChecked(false);
+ ui->cPushButton_ImageX3->setChecked(false);
+ ui->cPushButton_ImageX4->setChecked(false);
+
+ TilesScale=1;
+ UpdateTilesImage();
+}
+//----------------------------------------------------------------------------------------------------
+//слот выбора режима масштабирования поля тайлов 2:1
+//----------------------------------------------------------------------------------------------------
+void CMainWindow::on_cPushButton_ImageX2_released()
+{
+ ui->cPushButton_ImageX1->setChecked(false);
+ ui->cPushButton_ImageX2->setChecked(true);
+ ui->cPushButton_ImageX3->setChecked(false);
+ ui->cPushButton_ImageX4->setChecked(false);
+
+ TilesScale=2;
+ UpdateTilesImage();
+}
+//----------------------------------------------------------------------------------------------------
+//слот выбора режима масштабирования поля тайлов 3:1
+//----------------------------------------------------------------------------------------------------
+void CMainWindow::on_cPushButton_ImageX3_released()
+{
+ ui->cPushButton_ImageX1->setChecked(false);
+ ui->cPushButton_ImageX2->setChecked(false);
+ ui->cPushButton_ImageX3->setChecked(true);
+ ui->cPushButton_ImageX4->setChecked(false);
+
+ TilesScale=3;
+ UpdateTilesImage();
+}
+//----------------------------------------------------------------------------------------------------
+//слот выбора режима масштабирования поля тайлов 4:1
+//----------------------------------------------------------------------------------------------------
+void CMainWindow::on_cPushButton_ImageX4_released()
+{
+ ui->cPushButton_ImageX1->setChecked(false);
+ ui->cPushButton_ImageX2->setChecked(false);
+ ui->cPushButton_ImageX3->setChecked(false);
+ ui->cPushButton_ImageX4->setChecked(true);
+
+ TilesScale=4;
+ UpdateTilesImage();
+}
+//----------------------------------------------------------------------------------------------------
+//слот выбора режима масштабирования поля карты x0.5
+//----------------------------------------------------------------------------------------------------
+void CMainWindow::on_cPushButton_MapX05_released()
+{
+ MapScale=0.5;
+ ui->cMapEditor->SetScale(MapScale);
+}
+//----------------------------------------------------------------------------------------------------
+//слот выбора режима масштабирования поля карты x1
+//----------------------------------------------------------------------------------------------------
+void CMainWindow::on_cPushButton_MapX1_released()
+{
+ MapScale=1;
+ ui->cMapEditor->SetScale(MapScale);
+}
+//----------------------------------------------------------------------------------------------------
+//слот выбора режима масштабирования поля карты x2
+//----------------------------------------------------------------------------------------------------
+void CMainWindow::on_cPushButton_MapX2_released()
+{
+ MapScale=2;
+ ui->cMapEditor->SetScale(MapScale);
+}
+//----------------------------------------------------------------------------------------------------
+//слот выбора режима масштабирования поля карты x3
+//----------------------------------------------------------------------------------------------------
+void CMainWindow::on_cPushButton_MapX3_released()
+{
+ MapScale=3;
+ ui->cMapEditor->SetScale(MapScale);
+}
+//----------------------------------------------------------------------------------------------------
+//слот выбора режима масштабирования поля карты x4
+//----------------------------------------------------------------------------------------------------
+void CMainWindow::on_cPushButton_MapX4_released()
+{
+ MapScale=4;
+ ui->cMapEditor->SetScale(MapScale);
+}
+//----------------------------------------------------------------------------------------------------
+//слот выбора режима масштабирования поля карты x5
+//----------------------------------------------------------------------------------------------------
+void CMainWindow::on_cPushButton_MapX5_released()
+{
+ MapScale=5;
+ ui->cMapEditor->SetScale(MapScale);
 }
 //****************************************************************************************************
 //открытые функции
 //****************************************************************************************************
-
 
